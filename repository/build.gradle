@@ -1,0 +1,10 @@
+apply from: "$rootDir/common-android-library.gradle"
+
+android {
+    namespace = "com.internal.repository"
+}
+
+dependencies {
+    implementation(project(Modules.data))
+    implementation(Dependencies.kotlinCoroutinesCore)
+}

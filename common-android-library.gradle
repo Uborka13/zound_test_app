@@ -1,0 +1,55 @@
+apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-kapt'
+apply plugin: 'dagger.hilt.android.plugin'
+apply plugin: 'org.jetbrains.kotlin.android'
+
+android {
+    compileSdkVersion DefaultConfig.targetSdk
+
+    defaultConfig {
+        minSdkVersion DefaultConfig.minSdk
+        targetSdkVersion DefaultConfig.targetSdk
+        versionCode DefaultConfig.versionCode
+        versionName DefaultConfig.versionName
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
+    }
+    kotlinOptions {
+        jvmTarget = 11
+    }
+
+    buildTypes {
+        debug {
+            testCoverageEnabled true
+        }
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile("proguard-android.txt"), "$rootDir/app/proguard-rules.pro"
+        }
+    }
+    testOptions {
+        unitTests.includeAndroidResources = true
+        unitTests.returnDefaultValues = true
+    }
+
+    flavorDimensions "default"
+}
+
+dependencies {
+
+    implementation Dependencies.kotlinStdlib
+    implementation Dependencies.androidCore
+    implementation Dependencies.appCompat
+    implementation Dependencies.material
+
+    implementation(Dependencies.kotlinSerializationJson)
+    implementation(Dependencies.retrofit)
+    implementation(Dependencies.retrofitKotlinSerializationConverter)
+    implementation(Dependencies.loggingInterceptor)
+    implementation Dependencies.hiltAndroid
+    kapt Dependencies.hiltAndroidCompiler
+}

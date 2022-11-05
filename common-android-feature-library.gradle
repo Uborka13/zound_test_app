@@ -1,0 +1,19 @@
+apply from: "$rootDir/common-android-library.gradle"
+
+android {
+    composeOptions {
+        kotlinCompilerExtensionVersion '1.2.0'
+    }
+    buildFeatures {
+        compose true
+    }
+}
+
+dependencies {
+    implementation Dependencies.composeUI
+    debugImplementation Dependencies.composeUITooling
+    implementation Dependencies.composeUIToolingPreview
+    implementation Dependencies.composeMaterial
+    implementation Dependencies.activityCompose
+    implementation Dependencies.hiltNavigationCompose
+}

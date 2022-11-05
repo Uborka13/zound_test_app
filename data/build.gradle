@@ -1,0 +1,19 @@
+apply plugin: 'kotlinx-serialization'
+apply from: "$rootDir/common-android-library.gradle"
+
+android {
+    namespace = "com.internal.data"
+}
+
+dependencies {
+
+    implementation(project(Modules.core))
+    implementation(Dependencies.kotlinSerializationJson)
+    implementation(Dependencies.retrofit)
+    implementation(Dependencies.retrofitKotlinSerializationConverter)
+    implementation(Dependencies.loggingInterceptor)
+
+    kapt Dependencies.roomCompiler
+    implementation Dependencies.roomRuntime
+    implementation Dependencies.roomKtx
+}

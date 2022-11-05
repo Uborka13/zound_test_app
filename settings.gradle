@@ -14,3 +14,8 @@ dependencyResolutionManagement {
 }
 rootProject.name = "ZoundTestApp"
 include ':app'
+include ':data'
+include ':repository'
+include ':features'
+include ':features:crypto'
+include ':core'

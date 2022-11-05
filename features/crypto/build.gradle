@@ -1,0 +1,11 @@
+apply plugin: 'kotlinx-serialization'
+apply from: "$rootDir/common-android-feature-library.gradle"
+
+android {
+    namespace = "com.internal.crypto"
+}
+
+dependencies {
+    implementation(project(Modules.repository))
+    implementation(project(Modules.core))
+}

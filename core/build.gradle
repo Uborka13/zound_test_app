@@ -1,0 +1,4 @@
+apply from: "$rootDir/common-android-feature-library.gradle"
+android {
+    namespace = "com.internal.core"
+}

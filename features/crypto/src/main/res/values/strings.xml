@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="lbl_dashboard_screen_name">Dashboard</string>
+    <string name="lbl_watchlist_title">Watchlist</string>
+    <string name="lbl_retry">Retry</string>
+    <string name="lbl_empty_watchlist">Empty watchlist</string>
+    <string name="lbl_top_10_highest_gainers">Top 10 Highest Gainers</string>
+    <string name="lbl_see_all">See all</string>
+    <string name="lbl_empty_list">Empty list</string>
+    <string name="lbl_volume">Vol: %s</string>
+    <string name="lbl_crypto_list_screen_name">Crypto currencies</string>
+</resources>
