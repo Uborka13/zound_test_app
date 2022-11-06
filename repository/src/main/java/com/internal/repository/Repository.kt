@@ -1,12 +1,17 @@
 package com.internal.repository
 
+import com.internal.repository.model.Symbol
 import com.internal.repository.model.crypto.CryptoRepoModel
-import com.internal.repository.model.rates.RateConverterRepoModel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 
 interface Repository {
     val currencyStateFlow: StateFlow<ConvertedCurrency>
-    suspend fun getCryptos(): List<CryptoRepoModel>
-    suspend fun getTop10TrendingCryptos(): List<CryptoRepoModel>
-    suspend fun convertRate(model: RateConverterRepoModel)
+    val cryptosItemsListStateFlow: StateFlow<List<CryptoRepoModel>>
+    suspend fun getCryptos()
+    suspend fun forceRefreshCryptos()
+    suspend fun changeCurrency()
+    fun getWatchListSymbolFlow(): Flow<List<String>>
+    suspend fun addToWatchList(symbol: Symbol)
+    suspend fun removeFromWatchList(symbol: Symbol)
 }

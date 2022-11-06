@@ -1,5 +1,6 @@
 package com.internal.repository.di
 
+import com.internal.data.local.dao.WatchListDao
 import com.internal.data.remote.service.CryptoService
 import com.internal.data.remote.service.RatesService
 import com.internal.repository.Repository
@@ -20,9 +21,10 @@ object RepositoryModule {
     fun providesRepository(
         cryptoService: CryptoService,
         ratesService: RatesService,
+        watchListDao: WatchListDao,
         mapper: RepositoryMapper
     ): Repository {
-        return RepositoryImpl(cryptoService, ratesService, mapper)
+        return RepositoryImpl(cryptoService, ratesService, watchListDao, mapper)
     }
 
     @Provides

@@ -1,4 +1,4 @@
 package com.internal.repository.model
 
 @JvmInline
-value class ConvertAmount(val value: Double)
+value class Symbol(val value: String)

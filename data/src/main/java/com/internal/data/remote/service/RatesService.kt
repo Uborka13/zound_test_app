@@ -10,7 +10,6 @@ interface RatesService {
     @GET("/convert")
     suspend fun convertRates(
         @Query("from") from: Rates,
-        @Query("to") to: Rates,
-        @Query("amount") amount: Double
+        @Query("to") to: Rates
     ): ConvertResponse
 }

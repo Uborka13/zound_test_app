@@ -2,6 +2,7 @@
 <resources>
     <string name="lbl_dashboard_screen_name">Dashboard</string>
     <string name="lbl_watchlist_title">Watchlist</string>
+    <string name="lbl_added_to_watchlist">Watching %s</string>
     <string name="lbl_retry">Retry</string>
     <string name="lbl_empty_watchlist">Empty watchlist</string>
     <string name="lbl_top_10_highest_gainers">Top 10 Highest Gainers</string>
@@ -9,4 +10,12 @@
     <string name="lbl_empty_list">Empty list</string>
     <string name="lbl_volume">Vol: %s</string>
     <string name="lbl_crypto_list_screen_name">Crypto currencies</string>
+    <string name="lbl_open_price">Open Price</string>
+    <string name="lbl_last_price">Last Price</string>
+    <string name="lbl_low_price">Low Price</string>
+    <string name="lbl_high_price">High Price</string>
+    <string name="lbl_ask_price">Ask Price</string>
+    <string name="lbl_bid_price">Bid Price</string>
+    <string name="lbl_internet_or_server_not_available">Internet or Server not available</string>
+    <string name="lbl_something_went_wrong">Something went wrong</string>
 </resources>

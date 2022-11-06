@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="lbl_dashboard_screen_name">Kontrollpanel</string>
+    <string name="lbl_watchlist_title">Bevakningslista</string>
+    <string name="lbl_added_to_watchlist">Titta på %s</string>
+    <string name="lbl_retry">Försök igen</string>
+    <string name="lbl_empty_watchlist">Tom bevakningslista</string>
+    <string name="lbl_top_10_highest_gainers">De 10 största vinsterna</string>
+    <string name="lbl_see_all">Se alla</string>
+    <string name="lbl_empty_list">Tom lista</string>
+    <string name="lbl_volume">Vol: %s</string>
+    <string name="lbl_crypto_list_screen_name">Kryptovalutor</string>
+    <string name="lbl_open_price">Öppet pris</string>
+    <string name="lbl_last_price">Senaste pris</string>
+    <string name="lbl_low_price">Lågt pris</string>
+    <string name="lbl_high_price">Högt pris</string>
+    <string name="lbl_ask_price">Fråga pris</string>
+    <string name="lbl_bid_price">Anbudspris</string>
+    <string name="lbl_internet_or_server_not_available">Internet eller server är inte tillgänglig</string>
+    <string name="lbl_something_went_wrong">Något gick fel</string>
+</resources>

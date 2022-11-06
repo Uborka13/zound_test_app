@@ -5,8 +5,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.internal.crypto.dashboard.DashboardScreen
-import com.internal.crypto.detail.CryptoDetailsScreen
 import com.internal.crypto.list.CryptosListScreen
+import com.internal.crypto.watchlist.WatchListScreen
 
 @Composable
 fun Navigation() {
@@ -17,6 +17,9 @@ fun Navigation() {
     ) {
         composable(Routes.DashboardScreen.route) {
             DashboardScreen(
+                onWatchListClicked = {
+                    navController.navigate(Routes.WatchListScreen.route)
+                },
                 onSeeAllClicked = {
                     navController.navigate(Routes.CryptoListScreen.route)
                 }
@@ -25,8 +28,8 @@ fun Navigation() {
         composable(Routes.CryptoListScreen.route) {
             CryptosListScreen(onBackPressed = { navController.navigateUp() })
         }
-        composable(Routes.CryptoDetailsScreen.route) {
-            CryptoDetailsScreen(onBackPressed = { navController.navigateUp() })
+        composable(Routes.WatchListScreen.route) {
+            WatchListScreen(onBackPressed = { navController.navigateUp() })
         }
     }
 }

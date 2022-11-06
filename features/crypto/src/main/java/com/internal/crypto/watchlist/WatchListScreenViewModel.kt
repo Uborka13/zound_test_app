@@ -1,4 +1,4 @@
-package com.internal.crypto.list
+package com.internal.crypto.watchlist
 
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
@@ -7,27 +7,28 @@ import com.internal.core.network.ui.ServerErrorHandler
 import com.internal.core.network.ui.ServerErrorHandlerImpl
 import com.internal.crypto.R
 import com.internal.crypto.common.DetailedCryptosUIItem
+import com.internal.crypto.dashboard.DashboardViewModel
 import com.internal.repository.Repository
 import com.internal.repository.model.Symbol
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 @HiltViewModel
-class CryptosListViewModel @Inject constructor(
+class WatchListScreenViewModel @Inject constructor(
     private val repository: Repository
 ) : ViewModel(), ServerErrorHandler by ServerErrorHandlerImpl() {
 
-    private var cryptoJob: Job? = null
-
-    val cryptosListState = mutableStateOf(CryptosListUIItem())
-    val addToWatchListState = mutableStateOf(WatchListItem())
+    val watchListState = mutableStateOf(WatchListUIItem())
 
     val currentCurrencyConversion = repository.currencyStateFlow
 
-    val cryptosList = repository.cryptosItemsListStateFlow.map { list ->
+    private var cryptoJob: Job? = null
+
+    private val cryptosList = repository.cryptosItemsListStateFlow.map { list ->
         list.map { model ->
             DetailedCryptosUIItem(
                 name = model.baseAsset,
@@ -50,17 +51,16 @@ class CryptosListViewModel @Inject constructor(
         cryptoJob = launch(
             viewModelScope,
             apiErrorHandler = {
-                cryptosListState.value = CryptosListUIItem.error(it.httpStatusCode.toString())
+                watchListState.value = WatchListUIItem.error(it.httpStatusCode)
             },
             networkErrorHandler = {
-                cryptosListState.value =
-                    CryptosListUIItem.error(R.string.lbl_internet_or_server_not_available)
+                watchListState.value =
+                    WatchListUIItem.error(R.string.lbl_internet_or_server_not_available)
             }
         ) {
-            if (initialCall) cryptosListState.value = CryptosListUIItem.loading()
+            if (initialCall) watchListState.value = WatchListUIItem.loading()
             repository.getCryptos()
-            cryptosListState.value = CryptosListUIItem.success()
-            delay(REFRESH_RATE)
+            delay(DashboardViewModel.REFRESH_RATE)
             getCryptos(false)
         }
     }
@@ -70,18 +70,31 @@ class CryptosListViewModel @Inject constructor(
         cryptoJob = launch(
             viewModelScope,
             apiErrorHandler = {
-                cryptosListState.value = CryptosListUIItem.error(it.httpStatusCode.toString())
+                watchListState.value = WatchListUIItem.error(it.httpStatusCode.toString())
             },
             networkErrorHandler = {
-                cryptosListState.value =
-                    CryptosListUIItem.error(R.string.lbl_internet_or_server_not_available)
+                watchListState.value = WatchListUIItem.error("Internet or Server unavailable")
             }
         ) {
-            cryptosListState.value = CryptosListUIItem.loading()
+            watchListState.value = WatchListUIItem.loading()
             repository.forceRefreshCryptos()
-            cryptosListState.value = CryptosListUIItem.success()
-            delay(REFRESH_RATE)
+            delay(DashboardViewModel.REFRESH_RATE)
             getCryptos(false)
+        }
+    }
+
+    fun startCollectingWatchList() {
+        launch(viewModelScope) {
+            combine(
+                repository.getWatchListSymbolFlow(),
+                cryptosList
+            ) { watchListSymbols, cryptoList ->
+                watchListSymbols.map { symbol ->
+                    cryptoList.filter { it.symbol == symbol }
+                }
+            }.collect { list ->
+                watchListState.value = WatchListUIItem.success(list.flatten())
+            }
         }
     }
 
@@ -91,15 +104,9 @@ class CryptosListViewModel @Inject constructor(
         }
     }
 
-    fun addToWatchList(item: DetailedCryptosUIItem) {
+    fun removeFromWatchList(symbol: String) {
         launch(viewModelScope) {
-            addToWatchListState.value = WatchListItem.loading()
-            repository.addToWatchList(Symbol(item.symbol))
-            addToWatchListState.value = WatchListItem.success(item.name.uppercase())
+            repository.removeFromWatchList(Symbol(symbol))
         }
-    }
-
-    companion object {
-        const val REFRESH_RATE = 60_000L
     }
 }

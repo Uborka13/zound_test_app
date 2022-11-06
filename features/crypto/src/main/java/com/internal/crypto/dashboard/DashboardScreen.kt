@@ -2,6 +2,7 @@ package com.internal.crypto.dashboard
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -25,31 +26,34 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.internal.crypto.R
+import com.internal.crypto.common.CryptosUIItem
+import com.internal.crypto.common.NameAndQuoteText
+import com.internal.crypto.common.PercentageText
+import com.internal.crypto.common.PriceWithCurrencyText
 import com.internal.repository.model.rates.Currency
-import java.util.Locale
 
 @Composable
 fun DashboardScreen(
     viewModel: DashboardViewModel = hiltViewModel(),
+    onWatchListClicked: () -> Unit,
     onSeeAllClicked: () -> Unit
 ) {
     LaunchedEffect(Unit) {
-        viewModel.getTrendingCryptos()
-        viewModel.getWatchList()
+        viewModel.getCryptos()
+        viewModel.startCollectingWatchList()
+        viewModel.startCollectingCryptosList()
     }
     Scaffold(topBar = {
         DashboardAppBar(viewModel)
     }) {
         Column {
-            WatchList(viewModel)
-            Top10List(viewModel, onSeeAllClicked)
+            WatchList(viewModel, onWatchListClicked)
+            Top10HighestGainers(viewModel, onSeeAllClicked)
         }
     }
 }
@@ -59,23 +63,28 @@ fun DashboardAppBar(viewModel: DashboardViewModel) {
     TopAppBar(
         title = { Text(text = stringResource(R.string.lbl_dashboard_screen_name)) },
         actions = {
-            IconButton(
-                modifier = Modifier.padding(horizontal = 16.dp),
-                onClick = { viewModel.changeCurrency() }
-            ) {
-                Row {
-                    Text(
-                        text = viewModel.currentCurrencyConversion.collectAsState().value.current.symbol,
-                        color = MaterialTheme.colors.onPrimary
-                    )
-                    Icon(
-                        painterResource(id = R.drawable.ic_autorenew),
-                        contentDescription = null
-                    )
-                    Text(
-                        text = viewModel.currentCurrencyConversion.collectAsState().value.other.symbol,
-                        color = MaterialTheme.colors.onPrimary
-                    )
+            val currencyConversion = viewModel.currentCurrencyConversion.collectAsState().value
+            if (viewModel.currencyUIState.value.isLoading) {
+                CircularProgressIndicator()
+            } else {
+                IconButton(
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    onClick = { viewModel.changeCurrency() }
+                ) {
+                    Row {
+                        Text(
+                            text = currencyConversion.current.symbol,
+                            color = MaterialTheme.colors.onPrimary
+                        )
+                        Icon(
+                            painterResource(id = R.drawable.ic_autorenew),
+                            contentDescription = null
+                        )
+                        Text(
+                            text = currencyConversion.other.symbol,
+                            color = MaterialTheme.colors.onPrimary
+                        )
+                    }
                 }
             }
         }
@@ -83,13 +92,27 @@ fun DashboardAppBar(viewModel: DashboardViewModel) {
 }
 
 @Composable
-fun WatchList(viewModel: DashboardViewModel) {
+fun WatchList(viewModel: DashboardViewModel, onWatchListClicked: () -> Unit) {
     Column {
-        Text(
-            modifier = Modifier.fillMaxWidth().padding(16.dp),
-            text = stringResource(R.string.lbl_watchlist_title)
-        )
         val watchListStateValue = viewModel.watchListState.value
+        Row(modifier = Modifier.fillMaxWidth().align(Alignment.End)) {
+            Text(
+                modifier = Modifier.padding(16.dp),
+                text = stringResource(R.string.lbl_watchlist_title)
+            )
+            Spacer(modifier = Modifier.weight(1f))
+            if (watchListStateValue.uiItemList.isNotEmpty()) {
+                TextButton(
+                    modifier = Modifier.padding(end = 16.dp),
+                    onClick = { onWatchListClicked() }
+                ) {
+                    Text(
+                        text = stringResource(R.string.lbl_see_all),
+                        color = MaterialTheme.colors.onPrimary
+                    )
+                }
+            }
+        }
         when {
             watchListStateValue.isLoading -> {
                 CircularProgressIndicator(
@@ -97,10 +120,15 @@ fun WatchList(viewModel: DashboardViewModel) {
                 )
             }
             watchListStateValue.isError -> {
-                Text(watchListStateValue.errorMsg)
-                Button(onClick = { viewModel.getWatchList() }) {
-                    Text(stringResource(R.string.lbl_retry))
-                }
+                Text(
+                    modifier = Modifier.padding(16.dp),
+                    text = watchListStateValue.errorMsg
+                        ?: watchListStateValue.errorMsgRes?.let { res ->
+                            stringResource(
+                                res
+                            )
+                        } ?: stringResource(R.string.lbl_something_went_wrong)
+                )
             }
             else -> {
                 if (viewModel.watchListState.value.uiItemList.isEmpty()) {
@@ -115,9 +143,16 @@ fun WatchList(viewModel: DashboardViewModel) {
                         )
                     }
                 } else {
-                    LazyRow(modifier = Modifier.fillMaxWidth()) {
+                    LazyRow(
+                        modifier = Modifier.fillMaxWidth(),
+                        contentPadding = PaddingValues(horizontal = 16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
                         items(viewModel.watchListState.value.uiItemList) { item ->
-                            Text(text = item.name)
+                            WatchListItem(
+                                item = item,
+                                currentCurrency = viewModel.currentCurrencyConversion.collectAsState().value.current
+                            )
                         }
                     }
                 }
@@ -127,7 +162,7 @@ fun WatchList(viewModel: DashboardViewModel) {
 }
 
 @Composable
-fun Top10List(viewModel: DashboardViewModel, onSeeAllClicked: () -> Unit) {
+fun Top10HighestGainers(viewModel: DashboardViewModel, onSeeAllClicked: () -> Unit) {
     Column {
         Row(
             modifier = Modifier.fillMaxWidth().align(Alignment.End)
@@ -156,25 +191,42 @@ fun Top10List(viewModel: DashboardViewModel, onSeeAllClicked: () -> Unit) {
                     modifier = Modifier.padding(16.dp).fillMaxWidth(),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Text(highestGainersValue.errorMsg)
-                    Button(onClick = { viewModel.getTrendingCryptos() }) {
+                    Text(
+                        modifier = Modifier.padding(16.dp),
+                        text = highestGainersValue.errorMsg
+                            ?: highestGainersValue.errorMsgRes?.let { res ->
+                                stringResource(
+                                    res
+                                )
+                            } ?: stringResource(R.string.lbl_something_went_wrong)
+                    )
+                    Button(onClick = { viewModel.forceRefreshCryptos() }) {
                         Text(stringResource(R.string.lbl_retry))
                     }
                 }
             }
             else -> {
                 if (viewModel.top10HighestGainers.value.uiItemList.isEmpty()) {
-                    Text(
-                        modifier = Modifier.padding(16.dp),
-                        text = stringResource(R.string.lbl_empty_list)
-                    )
+                    Column(
+                        modifier = Modifier.padding(16.dp).fillMaxWidth(),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            modifier = Modifier.padding(16.dp),
+                            text = stringResource(R.string.lbl_empty_list)
+                        )
+                        Button(onClick = { viewModel.forceRefreshCryptos() }) {
+                            Text(stringResource(R.string.lbl_retry))
+                        }
+                    }
                 } else {
                     LazyColumn(
                         modifier = Modifier.fillMaxWidth(),
+                        contentPadding = PaddingValues(horizontal = 16.dp),
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         items(viewModel.top10HighestGainers.value.uiItemList) { item ->
-                            CryptoListItem(
+                            HighestGainerItem(
                                 item = item,
                                 viewModel.currentCurrencyConversion.collectAsState().value.current
                             )
@@ -187,46 +239,39 @@ fun Top10List(viewModel: DashboardViewModel, onSeeAllClicked: () -> Unit) {
 }
 
 @Composable
-fun CryptoListItem(item: CryptosUIItem, currentCurrency: Currency) {
+fun WatchListItem(item: CryptosUIItem, currentCurrency: Currency) {
     Card(
-        modifier = Modifier.padding(horizontal = 16.dp),
-        shape = RoundedCornerShape(8.dp),
-        backgroundColor = MaterialTheme.colors.surface
+        shape = RoundedCornerShape(8.dp)
     ) {
-        Row {
-            Column(modifier = Modifier.padding(8.dp)) {
-                Row(verticalAlignment = Alignment.Bottom) {
-                    Text(text = item.name.uppercase())
-                    Text("/")
-                    Text(text = item.quote.uppercase(), fontSize = 12.sp)
-                }
-                PercentageText(item.percentage)
-            }
-            Spacer(modifier = Modifier.weight(1f))
-            Column(modifier = Modifier.padding(8.dp), horizontalAlignment = Alignment.End) {
-                Row {
-                    Text(text = currentCurrency.symbol)
-                    Text(text = "${item.lastPrice.toDouble() * currentCurrency.rate}")
-                }
-                Row {
-                    Text(stringResource(R.string.lbl_volume, item.volume))
-                }
-            }
+        Column(modifier = Modifier.padding(16.dp)) {
+            NameAndQuoteText(item.name, item.quote)
+            PercentageText(percentage = item.percentage)
+            PriceWithCurrencyText(item.lastPrice, currentCurrency)
         }
     }
 }
 
 @Composable
-fun PercentageText(percentage: Float) {
-    if (percentage >= 0) {
-        Text(
-            text = "+${String.format(Locale.getDefault(), "%.2f", percentage)}%",
-            color = Color.Blue
-        )
-    } else {
-        Text(
-            text = "${String.format(Locale.getDefault(), "%.2f", percentage)}%",
-            color = Color.Red
-        )
+fun HighestGainerItem(item: CryptosUIItem, currentCurrency: Currency) {
+    Card(
+        shape = RoundedCornerShape(8.dp),
+        backgroundColor = MaterialTheme.colors.surface
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                NameAndQuoteText(item.name, item.quote)
+                PercentageText(item.percentage)
+            }
+            Spacer(modifier = Modifier.weight(1f))
+            Column(
+                modifier = Modifier.padding(8.dp),
+                horizontalAlignment = Alignment.End
+            ) {
+                PriceWithCurrencyText(item.lastPrice, currentCurrency)
+                Row {
+                    Text(stringResource(R.string.lbl_volume, item.volume))
+                }
+            }
+        }
     }
 }

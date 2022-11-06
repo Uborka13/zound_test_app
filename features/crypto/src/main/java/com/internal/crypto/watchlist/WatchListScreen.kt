@@ -1,6 +1,5 @@
-package com.internal.crypto.list
+package com.internal.crypto.watchlist
 
-import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -14,13 +13,12 @@ import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -28,65 +26,45 @@ import com.internal.crypto.R
 import com.internal.crypto.common.DetailedListItem
 import com.internal.crypto.common.MoonAppBar
 
-// TODO:
-//  Add search bar
-//  Add sorting options
-//  Add filter
-
 @Composable
-fun CryptosListScreen(
-    viewModel: CryptosListViewModel = hiltViewModel(),
+fun WatchListScreen(
+    viewModel: WatchListScreenViewModel = hiltViewModel(),
     onBackPressed: () -> Unit
 ) {
     LaunchedEffect(Unit) {
         viewModel.getCryptos()
+        viewModel.startCollectingWatchList()
     }
-    val currency = viewModel.currentCurrencyConversion.collectAsState()
-    val cryptosListItem = viewModel.cryptosList.collectAsState(emptyList())
-    val cryptoListState = viewModel.cryptosListState.value
-    val addToWatchlistStateValue = viewModel.addToWatchListState.value
-    addToWatchlistStateValue.symbol?.let { symbol ->
-        if (!addToWatchlistStateValue.isLoading) {
-            Toast.makeText(
-                LocalContext.current,
-                stringResource(id = R.string.lbl_added_to_watchlist, symbol),
-                Toast.LENGTH_SHORT
-            ).show()
-        }
-    }
+    val currency = viewModel.currentCurrencyConversion.collectAsState().value
     Scaffold(topBar = {
         MoonAppBar(
-            titleRes = R.string.lbl_crypto_list_screen_name,
+            titleRes = R.string.lbl_watchlist_title,
             onBackPressed = { onBackPressed() },
             onCurrencyChangePressed = { viewModel.changeCurrency() },
-            currentCurrency = currency.value.current,
-            otherCurrency = currency.value.other
+            currentCurrency = currency.current,
+            otherCurrency = currency.other
         )
     }) {
-        Column {
+        Column(modifier = Modifier.fillMaxSize()) {
+            val watchList = viewModel.watchListState.value
             when {
-                cryptoListState.isLoading -> {
+                watchList.isLoading -> {
                     CircularProgressIndicator(
-                        modifier = Modifier
-                            .padding(16.dp)
-                            .align(Alignment.CenterHorizontally)
+                        modifier = Modifier.padding(16.dp).align(Alignment.CenterHorizontally)
                     )
                 }
-                cryptoListState.isError -> {
+                watchList.isError -> {
                     Column(
-                        modifier = Modifier
-                            .padding(16.dp)
-                            .fillMaxWidth(),
+                        modifier = Modifier.padding(16.dp).fillMaxWidth(),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(
                             modifier = Modifier.padding(16.dp),
-                            text = cryptoListState.errorMsg
-                                ?: cryptoListState.errorMsgRes?.let { res ->
-                                    stringResource(
-                                        res
-                                    )
-                                } ?: stringResource(R.string.lbl_something_went_wrong)
+                            text = watchList.errorMsg ?: watchList.errorMsgRes?.let { res ->
+                                stringResource(
+                                    res
+                                )
+                            } ?: stringResource(R.string.lbl_something_went_wrong)
                         )
                         Button(onClick = { viewModel.forceRefreshCryptos() }) {
                             Text(stringResource(R.string.lbl_retry))
@@ -94,11 +72,9 @@ fun CryptosListScreen(
                     }
                 }
                 else -> {
-                    if (cryptosListItem.value.isEmpty()) {
+                    if (watchList.uiItemList.isEmpty()) {
                         Column(
-                            modifier = Modifier
-                                .padding(16.dp)
-                                .fillMaxWidth(),
+                            modifier = Modifier.padding(16.dp).fillMaxWidth(),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Text(
@@ -115,13 +91,13 @@ fun CryptosListScreen(
                             contentPadding = PaddingValues(16.dp),
                             verticalArrangement = Arrangement.spacedBy(16.dp)
                         ) {
-                            items(cryptosListItem.value) { item ->
+                            items(watchList.uiItemList) { item ->
                                 DetailedListItem(
                                     item = item,
-                                    currency = currency.value.current,
-                                    actionIcon = Icons.Default.Add
+                                    currency = currency.current,
+                                    actionIcon = Icons.Default.Close
                                 ) {
-                                    viewModel.addToWatchList(item)
+                                    viewModel.removeFromWatchList(item.symbol)
                                 }
                             }
                         }
